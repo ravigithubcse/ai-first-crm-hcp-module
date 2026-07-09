@@ -72,8 +72,8 @@ class Interaction(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    hcp: "HCP" = relationship("HCP", back_populates="interactions")
-    follow_ups: list["FollowUp"] = relationship(
+    hcp = relationship("HCP", back_populates="interactions")
+    follow_ups = relationship(
         "FollowUp", back_populates="interaction", cascade="all, delete-orphan"
     )
 

@@ -47,7 +47,7 @@ class HCP(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    interactions: list["Interaction"] = relationship(
+    interactions = relationship(
         "Interaction", back_populates="hcp", cascade="all, delete-orphan"
     )
 

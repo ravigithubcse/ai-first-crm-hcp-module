@@ -58,7 +58,7 @@ class FollowUp(Base):
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
-    interaction: "Interaction" = relationship("Interaction", back_populates="follow_ups")
+    interaction = relationship("Interaction", back_populates="follow_ups")
 
     def __repr__(self) -> str:
         return f"<FollowUp(id={self.id}, title='{self.title}', status='{self.status}')>"
