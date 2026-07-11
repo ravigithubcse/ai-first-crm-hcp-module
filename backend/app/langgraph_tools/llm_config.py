@@ -42,6 +42,7 @@ def get_llm(temperature: float = 0.3) -> ChatGroq:
         temperature=temperature,
         groq_api_key=api_key,
         max_retries=3,
+        timeout=30,
     )
 
 
@@ -63,4 +64,5 @@ def get_llm_with_context(temperature: float = 0.3) -> ChatGroq:
         temperature=temperature,
         groq_api_key=api_key,
         max_retries=3,
+        timeout=30,
     )
