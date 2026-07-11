@@ -1,0 +1,28 @@
+# =============================================================================
+# AI-First CRM HCP Module - Local Postgres
+# =============================================================================
+# Author  : Ravi Kumar
+# Version : 1.0.0
+# Spins up a Postgres instance matching backend/.env.example exactly, so
+# `docker compose up -d` is all that's needed before `uvicorn app.main:app`.
+# =============================================================================
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hcp_crm
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - hcp_crm_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  hcp_crm_pgdata:

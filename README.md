@@ -168,6 +168,27 @@ ai-first-crm-hcp-module/
 
 ## 🤖 LangGraph AI Agent Tools
 
+### Role of the agent
+
+The agent sits between the free-text chat box and the CRM's data layer. A
+rep can either fill out the structured form on the left, or just describe
+what happened in plain language on the right ("Met Dr. Sharma, discussed
+OncoBoost Phase III efficacy, positive sentiment, left the brochure") --
+both paths write to the same interaction record, and the two stay in sync:
+logging or editing an interaction from chat auto-fills the structured form
+in real time so the rep can review, correct, or add anything before saving.
+
+Routing is genuinely LLM-driven, not keyword matching: all five tools below
+are bound to a Groq-hosted model (`llama-3.3-70b-versatile`, chosen for
+reliable tool-calling) via a standard LangGraph ReAct loop -- an `agent`
+node reasons over the conversation and decides which tool to call and with
+what arguments, a `tools` node executes it, and control loops back to the
+agent to turn the result into a reply. Each tool then does its own
+Groq call internally (`gemma2-9b-it`, the model this assignment specifies)
+for the actual entity extraction, summarization, or insight generation --
+so both mandated models are doing real work, at two different layers of
+the same request.
+
 | # | Tool | Description | Example |
 |---|------|--------------|---------|
 | 1 | **Log Interaction** | Extracts HCP name, topics, materials, sentiment, and summary from natural language; auto-creates HCP if not found | *"Met Dr. Smith today, discussed our new oncology drug, he seemed interested, left some samples"* |
@@ -184,19 +205,21 @@ ai-first-crm-hcp-module/
 
 - **Node.js** ≥ 18.x
 - **Python** ≥ 3.10
-- **PostgreSQL** ≥ 15
-- **Groq API Key** — get one at [console.groq.com](https://console.groq.com)
+- **PostgreSQL** ≥ 15 — either your own instance, or run `docker compose up -d` from the repo root to start one that matches `backend/.env.example` exactly (db `hcp_crm`, user/password `postgres`/`postgres`, port 5432)
+- **Groq API Key** — get one free at [console.groq.com](https://console.groq.com/keys)
 
 ### Backend
 
 ```bash
+docker compose up -d             # starts local Postgres (skip if you have your own)
+
 cd backend
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 
 pip install -r requirements.txt
 
-cp .env.example .env            # edit DATABASE_URL and GROQ_API_KEY
+cp .env.example .env            # then paste your GROQ_API_KEY in
 
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
@@ -227,6 +250,23 @@ cd backend && source venv/bin/activate && uvicorn app.main:app --reload
 # Terminal 2 - Frontend
 cd app && npm run dev
 ```
+
+---
+
+## ✅ Testing
+
+```bash
+cd backend
+source venv/bin/activate
+pytest -v
+```
+
+Covers HCP/Interaction/Follow-up CRUD end to end, the static agent tools
+listing, and the LangGraph graph's structure (nodes wire up correctly, all
+five tools register with valid schemas). These don't call the live Groq
+API, so they pass with or without a real `GROQ_API_KEY` -- that keeps them
+runnable in CI. Exercise the actual AI reasoning manually through the chat
+panel once your key is in `backend/.env`.
 
 ---
 
@@ -271,8 +311,8 @@ cd app && npm run dev
 |---|---|
 | **Name** | Ravi Kumar |
 | **GitHub** | [github.com/ravigithubcse](https://github.com/ravigithubcse) |
-| **Version** | 1.0.0 |
-| **Date** | 2026-07-09 |
+| **Version** | 1.1.0 |
+| **Date** | 2026-07-09 (v1.1.0: chat-to-form autofill, LLM-driven agent routing) |
 
 [![GitHub](https://img.shields.io/badge/GitHub-1565C0?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ravigithubcse/ai-first-crm-hcp-module)
 
